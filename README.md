@@ -92,12 +92,12 @@ python -m unittest discover -s tests
 
 The suite includes checks for a table2asn validation helper located at:
 
-`/tmp/workspace/hyphaltip/Mfannot/tools/mt_annotation_validation.py`
+`tools/mt_annotation_validation.py`
 
 Use it to validate MT annotation submission assets (`.fna`, `.tbl`, `.sbt`):
 
 ```bash
-python /tmp/workspace/hyphaltip/Mfannot/tools/mt_annotation_validation.py \
+python tools/mt_annotation_validation.py \
   --fasta /absolute/path/to/sequence.fna \
   --tbl /absolute/path/to/annotation.tbl \
   --sbt /absolute/path/to/template.sbt
