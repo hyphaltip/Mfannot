@@ -82,6 +82,29 @@ The process to install MFannot on Ubuntu14 within a Docker image is documented i
 
 In order to get the help page of MFannot you need to type `mfannot -h` in your terminal.
 
+## Testing and MT annotation validation
+
+Run the Python test suite:
+
+```bash
+python -m unittest discover -s tests
+```
+
+The suite includes checks for a table2asn validation helper located at:
+
+`/tmp/workspace/hyphaltip/Mfannot/tools/mt_annotation_validation.py`
+
+Use it to validate MT annotation submission assets (`.fna`, `.tbl`, `.sbt`):
+
+```bash
+python /tmp/workspace/hyphaltip/Mfannot/tools/mt_annotation_validation.py \
+  --fasta /absolute/path/to/sequence.fna \
+  --tbl /absolute/path/to/annotation.tbl \
+  --sbt /absolute/path/to/template.sbt
+```
+
+It performs strict preflight checks (exists, non-empty, extension) before running table2asn and fails when table2asn reports validation errors.
+
 ## Contributing
 
 Please see [CONTRIBUTING](CONTRIBUTING.md) and [CONDUCT](CONDUCT.md) for details.
