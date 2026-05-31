@@ -116,3 +116,37 @@ Please see [CONTRIBUTING](CONTRIBUTING.md) and [CONDUCT](CONDUCT.md) for details
 ## License
 
 GNU General Public License v3.0. Please see [License File](LICENSE.md) for more information.
+
+## Python scaffold (`mfannot.py`)
+
+A new scaffold entrypoint is available at `mfannot.py` to support an incremental Python reimplementation of MFannot.
+
+Dry-run plan (no external tools executed):
+
+```bash
+python mfannot.py /absolute/path/to/input.masterfile
+```
+
+Enable ANI-gated LiftOff first-pass planning:
+
+```bash
+python mfannot.py /absolute/path/to/input.masterfile \
+  --genome-fasta /absolute/path/to/query.fna \
+  --enable-liftoff-first-pass \
+  --reference-fasta /absolute/path/to/reference.fna \
+  --liftoff-gff /absolute/path/to/reference.gff3 \
+  --min-ani-for-liftoff 0.95
+```
+
+Execute the scaffold with external tools:
+
+```bash
+python mfannot.py /absolute/path/to/input.masterfile \
+  --genome-fasta /absolute/path/to/query.fna \
+  --enable-liftoff-first-pass \
+  --reference-fasta /absolute/path/to/reference.fna \
+  --liftoff-gff /absolute/path/to/reference.gff3 \
+  --execute
+```
+
+When ANI is above threshold, LiftOff is included as a first-pass step before the remaining pipeline steps. If `--tbl` and `--sbt` are provided, table2asn validation is run at the end.
