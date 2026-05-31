@@ -98,9 +98,9 @@ Use it to validate MT annotation submission assets (`.fna`, `.tbl`, `.sbt`):
 
 ```bash
 python tools/mt_annotation_validation.py \
-  --fasta /absolute/path/to/sequence.fna \
-  --tbl /absolute/path/to/annotation.tbl \
-  --sbt /absolute/path/to/template.sbt
+  --fasta path/to/sequence.fna \
+  --tbl path/to/annotation.tbl \
+  --sbt path/to/template.sbt
 ```
 
 It performs strict preflight checks (exists, non-empty, extension) before running table2asn and fails when table2asn reports validation errors.
@@ -120,32 +120,33 @@ GNU General Public License v3.0. Please see [License File](LICENSE.md) for more 
 ## Python scaffold (`mfannot.py`)
 
 A new scaffold entrypoint is available at `mfannot.py` to support an incremental Python reimplementation of MFannot.
+Paths can be absolute or relative to the current working directory.
 
 Dry-run plan (no external tools executed):
 
 ```bash
-python mfannot.py /absolute/path/to/input.masterfile
+python mfannot.py path/to/input.masterfile
 ```
 
 Enable ANI-gated LiftOff first-pass planning:
 
 ```bash
-python mfannot.py /absolute/path/to/input.masterfile \
-  --genome-fasta /absolute/path/to/query.fna \
+python mfannot.py path/to/input.masterfile \
+  --genome-fasta path/to/query.fna \
   --enable-liftoff-first-pass \
-  --reference-fasta /absolute/path/to/reference.fna \
-  --liftoff-gff /absolute/path/to/reference.gff3 \
+  --reference-fasta path/to/reference.fna \
+  --liftoff-gff path/to/reference.gff3 \
   --min-ani-for-liftoff 0.95
 ```
 
 Execute the scaffold with external tools:
 
 ```bash
-python mfannot.py /absolute/path/to/input.masterfile \
-  --genome-fasta /absolute/path/to/query.fna \
+python mfannot.py path/to/input.masterfile \
+  --genome-fasta path/to/query.fna \
   --enable-liftoff-first-pass \
-  --reference-fasta /absolute/path/to/reference.fna \
-  --liftoff-gff /absolute/path/to/reference.gff3 \
+  --reference-fasta path/to/reference.fna \
+  --liftoff-gff path/to/reference.gff3 \
   --execute
 ```
 

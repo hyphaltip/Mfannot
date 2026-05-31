@@ -89,12 +89,13 @@ def validate_pipeline_config(config: PipelineConfig) -> PipelineConfig:
             "LiftOff reference FASTA",
             suffixes={".fa", ".fna", ".fasta"},
         )
-        if config.liftoff_gff is not None:
-            config.liftoff_gff = _validate_file(
-                config.liftoff_gff,
-                "LiftOff reference GFF",
-                suffixes={".gff", ".gff3"},
-            )
+        if config.liftoff_gff is None:
+            raise PipelineError("LiftOff first-pass requires --liftoff-gff")
+        config.liftoff_gff = _validate_file(
+            config.liftoff_gff,
+            "LiftOff reference GFF",
+            suffixes={".gff", ".gff3"},
+        )
 
     if config.submit_tbl is not None:
         config.submit_tbl = _validate_file(config.submit_tbl, "Submission TBL", suffixes={".tbl"})
@@ -104,7 +105,14 @@ def validate_pipeline_config(config: PipelineConfig) -> PipelineConfig:
     config.output_dir.mkdir(parents=True, exist_ok=True)
 
     if config.execute:
-        for required_bin in [config.flip_bin, config.blast_bin, config.exonerate_bin, config.hmmer_bin, config.erpin_bin]:
+        core_bins = (
+            config.flip_bin,
+            config.blast_bin,
+            config.exonerate_bin,
+            config.hmmer_bin,
+            config.erpin_bin,
+        )
+        for required_bin in core_bins:
             _validate_bin(required_bin)
         if config.enable_liftoff_first_pass:
             _validate_bin(config.liftoff_bin)
@@ -160,7 +168,7 @@ def build_pipeline_steps(config: PipelineConfig, ani_value: float | None = None)
                 str(config.genome_fasta),
                 str(config.reference_fasta),
                 "-g",
-                str(config.liftoff_gff) if config.liftoff_gff else "reference.gff3",
+                str(config.liftoff_gff),
                 "-o",
                 str(config.output_dir / "liftoff_first_pass.gff3"),
             ]
@@ -180,13 +188,37 @@ def build_pipeline_steps(config: PipelineConfig, ani_value: float | None = None)
                 )
             )
 
+    flip_output = config.output_dir / "flip_output.pep"
+    blast_output = config.output_dir / "blast_output.tsv"
+    hmmer_output = config.output_dir / "hmmer.tbl"
+
     steps.extend(
         [
-            PipelineStep("flip_orf_detection", [config.flip_bin, str(config.input_masterfile)], "Generate ORFs"),
-            PipelineStep("blast_first_pass", [config.blast_bin, "-query", "flip_output.pep"], "Initial protein homology scan"),
-            PipelineStep("exonerate_refinement", [config.exonerate_bin, "--model", "protein2genome"], "Intron/exon structure refinement"),
-            PipelineStep("hmmer_rna_scan", [config.hmmer_bin, "--tblout", "hmmer.tbl"], "Detect RNA and conserved motifs"),
-            PipelineStep("erpin_splice_scan", [config.erpin_bin, "pattern.epn", "sequence.fa"], "Splice motif structure checks"),
+            PipelineStep(
+                "flip_orf_detection",
+                [config.flip_bin, str(config.input_masterfile), str(flip_output)],
+                "Generate ORFs",
+            ),
+            PipelineStep(
+                "blast_first_pass",
+                [config.blast_bin, "-query", str(flip_output), "-out", str(blast_output)],
+                "Initial protein homology scan",
+            ),
+            PipelineStep(
+                "exonerate_refinement",
+                [config.exonerate_bin, "--model", "protein2genome", "--showtargetgff", "yes", "--showalignment", "no"],
+                "Intron/exon structure refinement",
+            ),
+            PipelineStep(
+                "hmmer_rna_scan",
+                [config.hmmer_bin, "--tblout", str(hmmer_output), str(config.input_masterfile)],
+                "Detect RNA and conserved motifs",
+            ),
+            PipelineStep(
+                "erpin_splice_scan",
+                [config.erpin_bin, str(config.input_masterfile)],
+                "Splice motif structure checks",
+            ),
         ]
     )
 
@@ -269,6 +301,8 @@ def run_scaffold(argv: list[str] | None = None) -> int:
 
     ani_value = None
     if config.enable_liftoff_first_pass:
+        if config.genome_fasta is None or config.reference_fasta is None:
+            raise PipelineError("LiftOff first-pass requires --genome-fasta and --reference-fasta")
         if config.execute:
             ani_value = compute_ani(config.genome_fasta, config.reference_fasta, config.fastani_bin)
             print(f"[info] ANI between query and reference: {ani_value:.4f}")

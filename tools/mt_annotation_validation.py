@@ -86,7 +86,7 @@ def run_table2asn_validation(
 ) -> Table2AsnValidationResult:
     if shutil.which(table2asn_bin) is None:
         raise ValidationError(
-            f"table2asn executable is not available on PATH: {table2asn_bin}"
+            f"table2asn executable not found: {table2asn_bin}"
         )
 
     command = build_table2asn_command(
@@ -126,7 +126,7 @@ def run_table2asn_validation(
 
 def _build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Run tbl2asn/table2asn validation on MT annotation outputs."
+        description="Run table2asn validation on MT annotation outputs."
     )
     parser.add_argument("--fasta", required=True, help="FASTA input file (.fa/.fna/.fasta).")
     parser.add_argument(
